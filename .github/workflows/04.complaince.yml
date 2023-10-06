@@ -44,7 +44,7 @@ jobs:
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v2
         with:
-          languages: python,TypeScript,yaml
+          languages: python,TypeScript,YAML
           setup-python-dependencies: "false"
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v2
