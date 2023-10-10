@@ -32,87 +32,100 @@ The outcomes of this lab are:
 6. Get familiar with the GitHub Dependency Review Action.
 7. Get familiar with the GitHub Dependabot.
 
-## Step 1.1: Create Integration Checks
+## Step 1: Create Integration Checks
 
-The first step is to create a new integration check for the next version. Follow these steps:
+The first step is to create a new integration check for the next version. 
 
-1. Navigate to `.github/workflows` and create a new file with the name `01.1.continuous.integration.yml`.
-2. Copy and paste the provided YAML code for running quality checks, UI tests, and security checks.
-3. Save the file and commit it to your repository.
+_**Objective**_: Implement integration checks using GitHub Actions to ensure code quality, security, and UI tests.
+_**Outcome**_: Gain familiarity with GitHub Actions and integration checks.
 
+### Instrcutions
+
+1. Create a new branch with name `contiuous-integration-deployment` using the following commands
+    - `git branch contiuous-integration-deployment`
+    - `git checkout contiuous-integration-deployment`
+2. Navigate to `.github/workflows` and create a new file with the name `01.continuous.integration.yml`.
+3. Copy and paste the provided YAML code for running quality checks, UI tests, and security checks.
+   ```yaml
+      name: Run Checks
+      
+      on:
+        pull_request:
+          branches:
+            - main
+        workflow_call: {}
+      
+      permissions:
+        actions: write
+        contents: read
+        security-events: write
+        checks: write
+      
+      env:
+        CI: 1
+        SITE_DIR: _site
+        TETRIS_APP_HOST: "127.0.0.1"
+        TETRIS_APP_PORT: "8080"
+        TETRIS_APP_PATH: "pages/githubuniverseworkshops/github-devsecops-fundamentals"
+      
+      jobs:
+        quality-checks:
+          runs-on: ubuntu-latest
+          steps:
+            - uses: actions/checkout@v3
+            - uses: actions/setup-python@v4
+              with:
+                python-version: 3.11
+            - uses: actions/setup-node@v3
+              with:
+                node-version: 20
+            - name: Install Python dependencies
+              run: |
+                python -m pip install --upgrade pip
+                pip install -r requirements.ci.txt
+            - name: Install NodeJS dependencies
+              run: npm ci
+            - name: Lint Python source
+              run: |
+                ruff check --format=github --select=E9,F63,F7,F82 --target-version=py311 .
+      
+        ui-tests:
+          runs-on: ubuntu-latest
+          steps:
+            - uses: actions/checkout@v3
+            - uses: actions/setup-python@v4
+              with:
+                python-version: 3.11
+            - uses: actions/setup-node@v3
+              with:
+                node-version: 20
+            - name: Install Python dependencies
+              run: |
+                python -m pip install --upgrade pip
+                pip install -r requirements.ci.txt
+            - name: Install node dependencies
+              run: npm ci
+            - name: Install Playwright Browsers
+              run: npx playwright install --with-deps
+            - name: Run Playwright tests
+              run: npx playwright test
+            - uses: actions/upload-artifact@v3
+              if: always()
+              with:
+                name: playwright-report
+                path: playwright-report/
+                retention-days: 30
+      ```
+4. Save the file and commit it to your repository using the following commands
+    - add the new files: `git add .`
+    - commit the changes: `git commit -m "add continuous integration"`
+    - push the changes to github: `git push --set-upstream origin contiuous-integration-deployment`
+5. Go back to your github repo and create a pull request
+6. 
 ### Complete Example 
-```yaml
-name: Run Checks
 
-on:
-  pull_request:
-    branches:
-      - main
-  workflow_call: {}
 
-permissions:
-  actions: write
-  contents: read
-  security-events: write
-  checks: write
-
-env:
-  CI: 1
-  SITE_DIR: _site
-  TETRIS_APP_HOST: "127.0.0.1"
-  TETRIS_APP_PORT: "8080"
-  TETRIS_APP_PATH: "pages/githubuniverseworkshops/github-devsecops-fundamentals"
-
-jobs:
-  quality-checks:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
-        with:
-          python-version: 3.11
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 20
-      - name: Install Python dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.ci.txt
-      - name: Install NodeJS dependencies
-        run: npm ci
-      - name: Lint Python source
-        run: |
-          ruff check --format=github --select=E9,F63,F7,F82 --target-version=py311 .
-
-  ui-tests:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
-        with:
-          python-version: 3.11
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 20
-      - name: Install Python dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.ci.txt
-      - name: Install node dependencies
-        run: npm ci
-      - name: Install Playwright Browsers
-        run: npx playwright install --with-deps
-      - name: Run Playwright tests
-        run: npx playwright test
-      - uses: actions/upload-artifact@v3
-        if: always()
-        with:
-          name: playwright-report
-          path: playwright-report/
-          retention-days: 30
-```
-
-## Step 1.2: Continuous Delivery
+## Step 2: Continuous Delivery
 
 In this step, you will create a new continuous delivery workflow for the next version. Follow these steps:
 
@@ -175,7 +188,7 @@ jobs:
           retention-days: 30
 ```
 
-## Step 2: Create Pre-Release Tag
+## Step 3.0: Create Pre-Release Tag
 
 GitHub Actions can be used to create a new tag for the next version. Follow these steps:
 
@@ -234,7 +247,7 @@ jobs:
 
 ```
 
-## Step 3: Build and Push Docker Image
+## Step 3.1: Build and Push Docker Image
 
 The next step is to create a Docker container image and push it to GitHub Container Registry (GHCR). Follow these steps:
 
